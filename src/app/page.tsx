@@ -1,101 +1,156 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import tpsDataRaw from "./data/tps.json";
+
+type Tps = {
+  kecamatan: string;
+  kelurahan: string;
+  noTps: string;
+  alamat: string;
+  lat: string;
+  lon: string;
+};
+
+const tpsData: Tps[] = tpsDataRaw;
+
+const Home = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedKecamatan, setSelectedKecamatan] = useState("");
+  const [selectedKelurahan, setSelectedKelurahan] = useState("");
+
+  // Dapatkan daftar kecamatan unik
+  const kecamatanOptions = Array.from(
+    new Set(tpsData.map((tps) => tps.kecamatan.replace(/^\d+-/, "")))
+  );
+
+  // Dapatkan daftar kelurahan unik berdasarkan kecamatan yang dipilih
+  const kelurahanOptions = selectedKecamatan
+    ? Array.from(
+        new Set(
+          tpsData
+            .filter(
+              (tps) =>
+                tps.kecamatan.replace(/^\d+-/, "") === selectedKecamatan
+            )
+            .map((tps) => tps.kelurahan.replace(/^\d+-/, ""))
+        )
+      )
+    : [];
+
+  // Filter data berdasarkan pencarian, kecamatan, dan kelurahan
+  const filteredData = tpsData.filter((tps) => {
+    const matchesSearch =
+      tps.kecamatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tps.kelurahan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tps.noTps.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tps.alamat.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesKecamatan = selectedKecamatan
+      ? tps.kecamatan.replace(/^\d+-/, "") === selectedKecamatan
+      : true;
+
+    const matchesKelurahan = selectedKelurahan
+      ? tps.kelurahan.replace(/^\d+-/, "") === selectedKelurahan
+      : true;
+
+    return matchesSearch && matchesKecamatan && matchesKelurahan;
+  });
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen p-8 bg-gray-50">
+      <h1 className="text-3xl font-bold text-center mb-6">Info TPS Kota Tangerang 2024</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Search Input */}
+      <input
+        type="text"
+        placeholder="Cari berdasarkan kecamatan, kelurahan, alamat, atau TPS..."
+        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      {/* Filter Kecamatan */}
+      <select
+        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        value={selectedKecamatan}
+        onChange={(e) => {
+          setSelectedKecamatan(e.target.value);
+          setSelectedKelurahan(""); // Reset kelurahan jika kecamatan berubah
+        }}
+      >
+        <option value="">Semua Kecamatan</option>
+        {kecamatanOptions.map((kecamatan) => (
+          <option key={kecamatan} value={kecamatan}>
+            {kecamatan}
+          </option>
+        ))}
+      </select>
+
+      {/* Filter Kelurahan */}
+      <select
+        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        value={selectedKelurahan}
+        onChange={(e) => setSelectedKelurahan(e.target.value)}
+        disabled={!selectedKecamatan} // Disable jika kecamatan belum dipilih
+      >
+        <option value="">Semua Kelurahan</option>
+        {kelurahanOptions.map((kelurahan) => (
+          <option key={kelurahan} value={kelurahan}>
+            {kelurahan}
+          </option>
+        ))}
+      </select>
+
+      {/* Table */}
+      <table className="w-full border-collapse border border-gray-300 bg-white rounded shadow">
+        <thead>
+          <tr className="bg-blue-100">
+            <th className="border border-gray-300 p-3 text-center">No</th>
+            <th className="border border-gray-300 p-3 text-left">Kecamatan</th>
+            <th className="border border-gray-300 p-3 text-left">Kelurahan</th>
+            <th className="border border-gray-300 p-3 text-left">No TPS</th>
+            <th className="border border-gray-300 p-3 text-left">Alamat</th>
+            <th className="border border-gray-300 p-3 text-left">Lokasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredData.map((tps, index) => (
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="border border-gray-300 p-3">{index + 1}</td>
+              <td className="border border-gray-300 p-3">
+                {tps.kecamatan.replace(/^\d+-/, "")}
+              </td>
+              <td className="border border-gray-300 p-3">
+                {tps.kelurahan.replace(/^\d+-/, "")}
+              </td>
+              <td className="border border-gray-300 p-3">
+                {tps.noTps.replace(/^\d+-/, "")}
+              </td>
+              <td className="border border-gray-300 p-3 uppercase">{tps.alamat}</td>
+              <td className="border border-gray-300 p-3">
+                <a
+                  href={`https://www.google.com/maps?q=${tps.lat},${tps.lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline hover:text-blue-700"
+                >
+                  Lihat
+                </a>
+              </td>
+            </tr>
+          ))}
+          {filteredData.length === 0 && (
+            <tr>
+              <td colSpan={6} className="text-center p-4 text-gray-500">
+                Tidak ada data yang ditemukan.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
-}
+};
+
+export default Home;
