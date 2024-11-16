@@ -77,30 +77,30 @@ const Home = () => {
   });
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
+    <div className="min-h-screen p-8 bg-gray-50 pt-0">
 
-      <div id="sticky-banner" className="fixed top-0 start-0 z-50 flex justify-between w-full p-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+      <div id="sticky-banner" className="sticky top-0 start-0 z-50 flex justify-between w-full p-4 border-b border-blue-100 bg-blue-50 dark:bg-gray-700 dark:border-gray-600">
           <div className="flex items-center mx-auto">
-              <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-                  <span className="inline-flex p-1 me-3 bg-gray-200 rounded-full dark:bg-gray-600 w-6 h-6 items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 19">
+              <p className="flex items-center text-sm font-normal text-blue-500 dark:text-gray-400">
+                  <span className="inline-flex p-1 me-3 bg-blue-700 rounded-full dark:bg-gray-600 w-6 h-6 items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 19">
                           <path d="M15 1.943v12.114a1 1 0 0 1-1.581.814L8 11V5l5.419-3.871A1 1 0 0 1 15 1.943ZM7 4H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2v5a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V4ZM4 17v-5h1v5H4ZM16 5.183v5.634a2.984 2.984 0 0 0 0-5.634Z"/>
                       </svg>
                       <span className="sr-only">Light bulb</span>
                   </span>
-                  <span>Informasi alamat dan lokasi TPS belum 100% valid, mohon untuk dapat dikroscek kembali di masing-masing wilayah.</span>
+                  <span className="text-blue-00">Informasi alamat dan lokasi TPS belum 100% valid, mohon untuk dapat dikroscek kembali di masing-masing wilayah.</span>
               </p>
           </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-center mb-1 mt-14">Info TPS Kota Tangerang 2024</h1>
+      <h1 className="text-3xl font-bold text-center mb-1 mt-8">Info TPS Kota Tangerang 2024</h1>
       <p className="text-xs text-center mb-6">Sumber: Bawaslu Kota Tangerang</p>
 
       {/* Search Input */}
       <input
         type="text"
         placeholder="Cari berdasarkan kecamatan, kelurahan, alamat, atau TPS..."
-        className="p-3 border border-gray-300 rounded w-full mb-2 shadow-sm focus:ring focus:ring-blue-300"
+        className="p-3 border border-gray-300 rounded w-full shadow-sm focus:ring focus:ring-blue-300 mb-2"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
