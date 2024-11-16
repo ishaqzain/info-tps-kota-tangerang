@@ -18,6 +18,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedKecamatan, setSelectedKecamatan] = useState("");
   const [selectedKelurahan, setSelectedKelurahan] = useState("");
+  const [selectedTps, setSelectedTps] = useState("");
 
   // Dapatkan daftar kecamatan unik
   const kecamatanOptions = Array.from(
@@ -38,7 +39,21 @@ const Home = () => {
       )
     : [];
 
-  // Filter data berdasarkan pencarian, kecamatan, dan kelurahan
+  // Dapatkan daftar TPS unik berdasarkan kelurahan yang dipilih
+  const tpsOptions = selectedKelurahan
+    ? Array.from(
+        new Set(
+          tpsData
+            .filter(
+              (tps) =>
+                tps.kelurahan.replace(/^\d+-/, "") === selectedKelurahan
+            )
+            .map((tps) => tps.noTps.replace(/^\d+-/, ""))
+        )
+      )
+    : [];
+
+  // Filter data berdasarkan pencarian, kecamatan, kelurahan, dan TPS
   const filteredData = tpsData.filter((tps) => {
     const matchesSearch =
       tps.kecamatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,29 +69,35 @@ const Home = () => {
       ? tps.kelurahan.replace(/^\d+-/, "") === selectedKelurahan
       : true;
 
-    return matchesSearch && matchesKecamatan && matchesKelurahan;
+    const matchesTps = selectedTps
+      ? tps.noTps.replace(/^\d+-/, "") === selectedTps
+      : true;
+
+    return matchesSearch && matchesKecamatan && matchesKelurahan && matchesTps;
   });
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
-      <h1 className="text-3xl font-bold text-center mb-6">Info TPS Kota Tangerang 2024</h1>
+      <h1 className="text-3xl font-bold text-center mb-1">Info TPS Kota Tangerang 2024</h1>
+      <p className="text-xs text-center mb-6">Sumber: Bawaslu Kota Tangerang</p>
 
       {/* Search Input */}
       <input
         type="text"
         placeholder="Cari berdasarkan kecamatan, kelurahan, alamat, atau TPS..."
-        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        className="p-3 border border-gray-300 rounded w-full mb-2 shadow-sm focus:ring focus:ring-blue-300"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
       {/* Filter Kecamatan */}
       <select
-        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        className="p-3 border border-gray-300 rounded w-full mb-2 shadow-sm focus:ring focus:ring-blue-300"
         value={selectedKecamatan}
         onChange={(e) => {
           setSelectedKecamatan(e.target.value);
           setSelectedKelurahan(""); // Reset kelurahan jika kecamatan berubah
+          setSelectedTps(""); // Reset TPS jika kecamatan berubah
         }}
       >
         <option value="">Semua Kecamatan</option>
@@ -89,9 +110,12 @@ const Home = () => {
 
       {/* Filter Kelurahan */}
       <select
-        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        className="p-3 border border-gray-300 rounded w-full mb-2 shadow-sm focus:ring focus:ring-blue-300"
         value={selectedKelurahan}
-        onChange={(e) => setSelectedKelurahan(e.target.value)}
+        onChange={(e) => {
+          setSelectedKelurahan(e.target.value);
+          setSelectedTps(""); // Reset TPS jika kelurahan berubah
+        }}
         disabled={!selectedKecamatan} // Disable jika kecamatan belum dipilih
       >
         <option value="">Semua Kelurahan</option>
@@ -102,8 +126,24 @@ const Home = () => {
         ))}
       </select>
 
+      {/* Filter TPS */}
+      <select
+        className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
+        value={selectedTps}
+        onChange={(e) => setSelectedTps(e.target.value)}
+        disabled={!selectedKelurahan} // Disable jika kelurahan belum dipilih
+      >
+        <option value="">Semua TPS</option>
+        {tpsOptions.map((tps) => (
+          <option key={tps} value={tps}>
+            {tps}
+          </option>
+        ))}
+      </select>
+
       {/* Table */}
-      <table className="w-full border-collapse border border-gray-300 bg-white rounded shadow">
+      <div className="relative overflow-x-auto">
+      <table className="table-auto w-full border-collapse border border-gray-300 bg-white rounded shadow">
         <thead>
           <tr className="bg-blue-100">
             <th className="border border-gray-300 p-3 text-center">No</th>
@@ -117,17 +157,17 @@ const Home = () => {
         <tbody>
           {filteredData.map((tps, index) => (
             <tr key={index} className="hover:bg-gray-100">
-              <td className="border border-gray-300 p-3">{index + 1}</td>
+              <td className="border border-gray-300 p-3 text-center">{index + 1}</td>
               <td className="border border-gray-300 p-3">
                 {tps.kecamatan.replace(/^\d+-/, "")}
               </td>
               <td className="border border-gray-300 p-3">
                 {tps.kelurahan.replace(/^\d+-/, "")}
               </td>
-              <td className="border border-gray-300 p-3">
+              <td className="border border-gray-300 p-3 text-nowrap">
                 {tps.noTps.replace(/^\d+-/, "")}
               </td>
-              <td className="border border-gray-300 p-3 uppercase">{tps.alamat}</td>
+              <td className="border border-gray-300 p-3 uppercase max-w-96">{tps.alamat}</td>
               <td className="border border-gray-300 p-3">
                 <a
                   href={`https://www.google.com/maps?q=${tps.lat},${tps.lon}`}
@@ -149,6 +189,7 @@ const Home = () => {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };
