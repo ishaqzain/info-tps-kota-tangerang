@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import tpsDataRaw from "./data/tps.json";
 
 type Tps = {
@@ -15,10 +16,70 @@ type Tps = {
 const tpsData: Tps[] = tpsDataRaw;
 
 const Home = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Back to top
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // State
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedKecamatan, setSelectedKecamatan] = useState("");
   const [selectedKelurahan, setSelectedKelurahan] = useState("");
   const [selectedTps, setSelectedTps] = useState("");
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Handle Back to top
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Load filter values from URL parameters
+  useEffect(() => {
+    setSearchTerm(searchParams.get("search") || "");
+    setSelectedKecamatan(searchParams.get("kecamatan") || "");
+    setSelectedKelurahan(searchParams.get("kelurahan") || "");
+    setSelectedTps(searchParams.get("tps") || "");
+  }, [searchParams]);
+
+  // Update URL parameters when filters change
+  const updateUrlParams = () => {
+    const params = new URLSearchParams();
+
+    if (searchTerm) params.set("search", searchTerm);
+    if (selectedKecamatan) params.set("kecamatan", selectedKecamatan);
+    if (selectedKelurahan) params.set("kelurahan", selectedKelurahan);
+    if (selectedTps) params.set("tps", selectedTps);
+
+    router.push(`?${params.toString()}`);
+  };
+
+  // Apply filter changes
+  useEffect(() => {
+    updateUrlParams();
+  }, [searchTerm, selectedKecamatan, selectedKelurahan, selectedTps]);
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedKecamatan("");
+    setSelectedKelurahan("");
+    setSelectedTps("");
+    router.push("/"); // Reset URL to base route
+  };
 
   // Dapatkan daftar kecamatan unik
   const kecamatanOptions = Array.from(
@@ -74,8 +135,13 @@ const Home = () => {
     return matchesSearch && matchesKecamatan && matchesKelurahan && matchesTps;
   });
 
+  // Cek apakah filter aktif
+  const isFilterActive =
+    searchTerm || selectedKecamatan || selectedKelurahan || selectedTps;
+
   return (
-    <div className="relative">
+    <div>
+      {/* Toast */}
       <div
         id="sticky-banner"
         className="sticky top-0 start-0 z-50 flex justify-between w-full p-4 border-b border-blue-100 bg-blue-50 dark:bg-gray-700 dark:border-gray-600"
@@ -94,26 +160,24 @@ const Home = () => {
               </svg>
               <span className="sr-only">Light bulb</span>
             </span>
-            <span className="text-blue-00">
+            <span className="text-blue-600 text-sm">
               Informasi alamat dan lokasi TPS belum 100% valid, mohon untuk
               dapat dikroscek kembali di masing-masing wilayah.
             </span>
           </p>
         </div>
       </div>
-      <div className="min-h-screen p-3 bg-gray-50 pt-0">
-        <h1 className="text-3xl font-bold text-center mb-1 pt-8">
+      <div className="min-h-screen p-3 bg-gray-50">
+        <h1 className="text-3xl font-bold text-center mb-1 pt-5">
           Info TPS Kota Tangerang 2024
         </h1>
-        <p className="text-xs text-center mb-6">
-          Sumber: Bawaslu Kota Tangerang
-        </p>
+        <p className="text-xs text-center mb-6">Sumber: KPUD Kota Tangerang</p>
 
         {/* Search Input */}
         <input
           type="text"
           placeholder="Cari berdasarkan kecamatan, kelurahan, alamat, atau TPS..."
-          className="p-3 border border-gray-300 rounded w-full shadow-sm focus:ring focus:ring-blue-300 mb-2"
+          className="p-3 border border-gray-300 rounded w-full mb-2 shadow-sm focus:ring focus:ring-blue-300"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -124,8 +188,8 @@ const Home = () => {
           value={selectedKecamatan}
           onChange={(e) => {
             setSelectedKecamatan(e.target.value);
-            setSelectedKelurahan(""); // Reset kelurahan jika kecamatan berubah
-            setSelectedTps(""); // Reset TPS jika kecamatan berubah
+            setSelectedKelurahan("");
+            setSelectedTps("");
           }}
         >
           <option value="">Semua Kecamatan</option>
@@ -142,9 +206,9 @@ const Home = () => {
           value={selectedKelurahan}
           onChange={(e) => {
             setSelectedKelurahan(e.target.value);
-            setSelectedTps(""); // Reset TPS jika kelurahan berubah
+            setSelectedTps("");
           }}
-          disabled={!selectedKecamatan} // Disable jika kecamatan belum dipilih
+          disabled={!selectedKecamatan}
         >
           <option value="">Semua Kelurahan</option>
           {kelurahanOptions.map((kelurahan) => (
@@ -159,7 +223,7 @@ const Home = () => {
           className="p-3 border border-gray-300 rounded w-full mb-4 shadow-sm focus:ring focus:ring-blue-300"
           value={selectedTps}
           onChange={(e) => setSelectedTps(e.target.value)}
-          disabled={!selectedKelurahan} // Disable jika kelurahan belum dipilih
+          disabled={!selectedKelurahan}
         >
           <option value="">Semua TPS</option>
           {tpsOptions.map((tps) => (
@@ -169,11 +233,21 @@ const Home = () => {
           ))}
         </select>
 
+        {/* Reset Button (Tampilkan hanya jika filter aktif) */}
+        {isFilterActive && (
+          <button
+            onClick={resetFilters}
+            className="p-3 bg-red-500 text-white rounded shadow hover:bg-red-600 focus:ring focus:ring-red-300 mb-4"
+          >
+            Reset Filter
+          </button>
+        )}
+
         {/* Table */}
-        <div className="relative overflow-x-auto">
+        <div className="overflow-x-auto h-[380px]">
           <table className="table-auto w-full border-collapse border border-gray-300 bg-white rounded shadow">
             <thead>
-              <tr className="bg-blue-100">
+              <tr className="bg-blue-100 sticky top-0 z-10">
                 <th className="border border-gray-300 p-3 text-center">No</th>
                 <th className="border border-gray-300 p-3 text-left">
                   Kecamatan
@@ -198,10 +272,10 @@ const Home = () => {
                   <td className="border border-gray-300 p-3">
                     {tps.kelurahan.replace(/^\d+-/, "")}
                   </td>
-                  <td className="border border-gray-300 p-3 text-nowrap">
+                  <td className="border border-gray-300 p-3 min-w-20">
                     {tps.noTps.replace(/^\d+-/, "")}
                   </td>
-                  <td className="border border-gray-300 p-3 uppercase max-w-96">
+                  <td className="border border-gray-300 p-3 uppercase max-w-sm">
                     {tps.alamat}
                   </td>
                   <td className="border border-gray-300 p-3">
@@ -209,16 +283,19 @@ const Home = () => {
                       href={`https://www.google.com/maps?q=${tps.lat},${tps.lon}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500 underline hover:text-blue-700"
+                      className="text-blue-500 hover:underline"
                     >
-                      Lihat
+                      Lihat Lokasi
                     </a>
                   </td>
                 </tr>
               ))}
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center p-4 text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="border border-gray-300 p-3 text-center text-gray-500"
+                  >
                     Tidak ada data yang ditemukan.
                   </td>
                 </tr>
@@ -227,6 +304,16 @@ const Home = () => {
           </table>
         </div>
       </div>
+      {/* Back top top */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 p-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 focus:ring focus:ring-blue-300"
+          aria-label="Back to Top"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 };
