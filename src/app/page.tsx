@@ -75,7 +75,7 @@ const Home = () => {
   });
 
   return (
-    <div>
+    <div className="relative">
       <div
         id="sticky-banner"
         className="sticky top-0 start-0 z-50 flex justify-between w-full p-4 border-b border-blue-100 bg-blue-50 dark:bg-gray-700 dark:border-gray-600"
@@ -102,7 +102,7 @@ const Home = () => {
         </div>
       </div>
       <div className="min-h-screen p-3 bg-gray-50 pt-0">
-        <h1 className="text-3xl font-bold text-center mb-1 mt-8">
+        <h1 className="text-3xl font-bold text-center mb-1 pt-8">
           Info TPS Kota Tangerang 2024
         </h1>
         <p className="text-xs text-center mb-6">
